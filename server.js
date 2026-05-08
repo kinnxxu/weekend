@@ -14,7 +14,8 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
   process.env.FRONTEND_URL,
-  "https://finebearing.vercel.app", // Added a likely candidate based on logo
+  "https://tent-nine.vercel.app",
+  "https://finebearing.vercel.app",
   "https://fine-bearing.vercel.app"
 ].filter(Boolean);
 
