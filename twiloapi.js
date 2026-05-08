@@ -149,7 +149,7 @@ const sendSMSOrderAlert = async (phone, orderId, status) => {
 const sendAdminNewOrderAlert = async (order) => {
     // Get list of admin/staff numbers from .env (comma separated)
     // Example: ADMIN_NOTIFICATION_PHONES=+919888109761,+918146119761
-    const numbersStr = process.env.ADMIN_NOTIFICATION_PHONES || "";
+    const numbersStr = process.env.ADMIN_NOTIFICATION_PHONES || process.env.ADMIN_PHONE || "";
     const numbers = numbersStr.split(',').map(n => n.trim()).filter(n => n.length > 5);
 
     if (numbers.length === 0) {

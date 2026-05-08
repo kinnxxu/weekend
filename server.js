@@ -13,8 +13,10 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
-  "https://your-frontend-name.vercel.app"
-];
+  process.env.FRONTEND_URL,
+  "https://finebearing.vercel.app", // Added a likely candidate based on logo
+  "https://fine-bearing.vercel.app"
+].filter(Boolean);
 
 app.use(cors({
   origin: allowedOrigins,
@@ -453,7 +455,6 @@ app.put("/api/products/:id", auth, adminOnly, (req, res) => {
   }
 });
 
-// DELETE product - admin only
 // --- SECURE RAZORPAY PAYMENT FLOW ---
 
 // 1. Create Razorpay Order
@@ -610,7 +611,7 @@ app.post("/api/payment/webhook", async (req, res) => {
 app.get("/api/orders/:username", (req, res) => {
   try {
     const orders = readOrders();
-    const userOrders = orders.filter(o => o.user?.email === req.params.username || o.user?.username === req.params.username);
+    const userOrders = orders.filter(o => o.userId === req.params.username || o.user?.email === req.params.username || o.user?.username === req.params.username);
     res.json(userOrders);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch orders" });
@@ -641,7 +642,7 @@ app.patch("/api/admin/orders/:orderId/status", auth, employeeOrAdmin, (req, res)
     writeOrders(orders);
 
     // Automatically send SMS alert if phone number is available
-    const customerPhone = orders[index].user?.phone;
+    const customerPhone = orders[index].shippingAddress?.phone || orders[index].userId;
     if (customerPhone) {
       console.log(`Triggering SMS alert for order ${orderId} to ${customerPhone}`);
       sendSMSOrderAlert(customerPhone, orderId, status)
