@@ -10,7 +10,20 @@ const crypto = require("crypto");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://your-frontend-name.vercel.app"
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+}));
+
+
 // For Razorpay webhooks, we need the raw body for signature verification
 app.use(express.json({
   verify: (req, res, buf) => {
@@ -57,7 +70,7 @@ app.post("/api/upload-catalogue", upload.single("catalogue"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: "No file uploaded" });
   }
-  
+
   const filePath = `/uploads/${req.file.filename}`;
   res.json({ filePath });
 });
@@ -793,7 +806,7 @@ app.post("/api/request-quote", async (req, res) => {
       try {
         const https = require("https");
         const dataString = JSON.stringify(quoteData);
-        
+
         const options = {
           method: 'POST',
           headers: {
@@ -827,10 +840,10 @@ const determineZone = (state, city) => {
   // Shop is based in Ludhiana, Punjab
   if (c === "ludhiana") return "local";
   if (s === "punjab") return "state";
-  
+
   const metroCities = ["mumbai", "delhi", "new delhi", "bangalore", "bengaluru", "kolkata", "chennai", "hyderabad", "ahmedabad", "pune"];
   if (metroCities.includes(c)) return "metro";
-  
+
   return "national";
 };
 
@@ -843,14 +856,14 @@ app.post("/api/calculate-shipping", (req, res) => {
 
     const products = readProducts();
     const zone = determineZone(state, city);
-    
+
     const zoneRates = {
       local: 40,
       state: 60,
       metro: 80,
       national: 100
     };
-    
+
     const zoneDays = {
       local: "1-2 Days",
       state: "2-4 Days",
@@ -868,7 +881,7 @@ app.post("/api/calculate-shipping", (req, res) => {
 
       // Extract actual weight from specs (e.g., "1.9 kg")
       let actualWeight = parseFloat(product.specifications?.Weight || "0.5");
-      
+
       // Extract dimensions (Defaults if missing)
       // For heavy products/scalable design, we look for L, W, H in specs
       const L = parseFloat(product.specifications?.Length || "10");
@@ -877,7 +890,7 @@ app.post("/api/calculate-shipping", (req, res) => {
 
       const volumetricWeight = (L * W * H) / 5000;
       const finalWeight = Math.max(actualWeight, volumetricWeight);
-      
+
       totalWeight += finalWeight * item.quantity;
     });
 
@@ -895,6 +908,10 @@ app.post("/api/calculate-shipping", (req, res) => {
     console.error("Shipping Calculation Error:", error);
     res.status(500).json({ message: "Failed to calculate shipping" });
   }
+});
+
+app.get("/", (req, res) => {
+  res.send("Backend is live");
 });
 
 if (require.main === module) {
